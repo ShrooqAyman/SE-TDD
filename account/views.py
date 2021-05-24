@@ -3,6 +3,7 @@ from django.views.generic import View
 from django.contrib import messages
 from validate_email import validate_email 
 from django.contrib.auth.models import User
+from django.contrib.auth import login,logout,authenticate
 # Create your views here.
 
 class RegisterationView(View):
@@ -57,6 +58,43 @@ class RegisterationView(View):
         user.set_password(password)
         user.is_active = False
         user.save()
-        messages.add_message(request,messages.SUCCESS,'username is created ')
+        
+        messages.add_message(request,messages.SUCCESS,'user is created ')
         return redirect('register')
-# Create your views here.
+
+
+class loginView(View):
+    def get(self, request):
+        return render(request, 'auth/login.html')
+
+    def post(self, request):
+        context = {
+            'data': request.POST,
+            'has_error': False
+        }
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        if username == '':
+            messages.add_message(request, messages.ERROR,
+                                 'Username is required')
+            context['has_error'] = True
+        if password == '':
+            messages.add_message(request, messages.ERROR,
+                                 'Password is required')
+            context['has_error'] = True
+        user = authenticate(request, username=username, password=password)
+
+        if  user :
+            messages.add_message(request, messages.ERROR, 'Invalid login')
+            context['has_error'] = True
+
+        if context['has_error']:
+            return render(request, 'auth/login.html', status=401, context=context)
+        login(request, user)
+        
+        return redirect('home')
+
+
+class homeView(View):
+    def get(self,request):
+        return render(request,'home.html')
