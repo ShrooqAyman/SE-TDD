@@ -1,0 +1,17 @@
+language: python
+
+python:
+    - "3.7"
+env:
+    - SECRET_KEY='TEST'
+services:
+   - postgresql
+install:
+    - pipenv install
+
+script:
+    -  coverage run --source='account' manage.py test && coverage report && coverage html
+after_success:
+    - codecov
+
+© 2021 GitHub, Inc.
