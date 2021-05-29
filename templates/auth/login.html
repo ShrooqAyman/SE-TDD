@@ -3,7 +3,7 @@
 {% block content%}
 
 <section class="login-dark" style="margin-bottom: 0px;background: #F2F2F2;height: 700px;">
-    <form method="post" style="background: #284659;">
+    <form method="POST" action="{%url 'login'%}" style="background: #284659;">
     {% csrf_token %}
 
     {% if messages %}
