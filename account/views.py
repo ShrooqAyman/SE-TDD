@@ -3,8 +3,18 @@ from django.views.generic import View
 from django.contrib import messages
 from validate_email import validate_email 
 from django.contrib.auth.models import User
-from django.contrib.auth import login,logout,authenticate
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes, force_text, DjangoUnicodeDecodeError
+from .utils import generate_token
+from django.core.mail import EmailMessage
+from django.conf import settings
+from django.contrib.auth import authenticate, login, logout
 
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+
+import threading
 
 # *****************register view class*****************************  
 class RegisterationView(View):
@@ -112,3 +122,106 @@ class LogoutView(View):
         logout(request)
         messages.add_message(request, messages.SUCCESS, 'logout succesfully')
         return redirect('login')
+
+#**************************************************************
+
+class ResstPasswordView(View):
+    def get(self, request):
+        return render(request, 'auth/resetpassword.html')
+
+    def post(self, request):
+        email = request.POST['email']
+
+        if not validate_email(email):
+            messages.error(request, 'Please enter a valid email')
+            return render(request, 'auth/resetpassword.html')
+
+        user = User.objects.filter(email=email)
+
+        if user.exists():
+            current_site = get_current_site(request)
+            email_subject = '[Reset your Password]'
+            message = render_to_string('auth/reset-user-password.html',
+                                       {
+                                           'domain': current_site.domain,
+                                           'uid': urlsafe_base64_encode(force_bytes(user[0].pk)),
+                                           'token': PasswordResetTokenGenerator().make_token(user[0])
+                                       }
+                                       )
+
+            email_message = EmailMessage(
+                email_subject,
+                message,
+                settings.EMAIL_HOST_USER,
+                [email]
+            )
+
+            EmailThread(email_message).start()
+
+        messages.success(
+            request, 'We have sent you an email with instructions on how to reset your password')
+        return render(request, 'auth/request-reset-email.html')
+
+
+class SetNewPasswordView(View):
+    def get(self, request, uidb64, token):
+        context = {
+            'uidb64': uidb64,
+            'token': token
+        }
+
+        try:
+            user_id = force_text(urlsafe_base64_decode(uidb64))
+
+            user = User.objects.get(pk=user_id)
+
+            if not PasswordResetTokenGenerator().check_token(user, token):
+                messages.info(
+                    request, 'Password reset link, is invalid, please request a new one')
+                return render(request, 'auth/resetpassword.html')
+
+        except DjangoUnicodeDecodeError as identifier:
+            messages.success(
+                request, 'Invalid link')
+            return render(request, 'auth/resetpassword.html')
+
+        return render(request, 'auth/set-new-password.html', context)
+
+    def post(self, request, uidb64, token):
+        context = {
+            'uidb64': uidb64,
+            'token': token,
+            'has_error': False
+        }
+
+        password = request.POST.get('password')
+        password2 = request.POST.get('password2')
+        if len(password) < 6:
+            messages.add_message(request, messages.ERROR,
+                                 'passwords should be at least 6 characters long')
+            context['has_error'] = True
+        if password != password2:
+            messages.add_message(request, messages.ERROR,
+                                 'passwords don`t match')
+            context['has_error'] = True
+
+        if context['has_error'] == True:
+            return render(request, 'auth/set-new-password.html', context)
+
+        try:
+            user_id = force_text(urlsafe_base64_decode(uidb64))
+
+            user = User.objects.get(pk=user_id)
+            user.set_password(password)
+            user.save()
+
+            messages.success(
+                request, 'Password reset success, you can login with new password')
+
+            return redirect('login')
+
+        except DjangoUnicodeDecodeError as identifier:
+            messages.error(request, 'Something went wrong')
+            return render(request, 'auth/set-new-password.html', context)
+
+        return render(request, 'auth/set-new-password.html', context)
