@@ -1,24 +1,32 @@
 {% extends 'base.html'%}
 {% load static %}
 {% block content%}
-<section class="login-dark" style="margin-bottom: 0px;background: #F2F2F2;height: 700px;">
-  
 
-    <form method="post" style="background: #284659;">
-        {% csrf_token %}
+<section class="login-dark" style="margin-bottom: 0px;background: #F2F2F2;height: 700px;">
+    <form method="POST" action="{%url 'login'%}" style="background: #284659;">
+    {% csrf_token %}
 
     {% if messages %}
-
         {% for message in messages %}
-        <div  class ="alert alert-danger">
-        {{message}}</div
+              <div  class ="alert alert-danger"> {{message}} </div>
         {% endfor %}
-         {% endif %}
+    {% endif %}
+
         <h2 class="visually-hidden">Login Form</h2>
-        <div class="illustration"><i class="icon ion-ios-locked-outline" style="border-color: #F2AE30;color: #EDBB30;"></i></div>
-        <div class="mb-3"><input class="form-control" type="text" name="username" placeholder="username" required=""></div>
-        <div class="mb-3"><input class="form-control" type="password" name="password" placeholder="Password" required=""></div>
-        <div class="mb-3"><button class="btn btn-primary d-block w-100" type="submit" style="margin-left: 0px;background: #EDBB30;">Log In</button></div><a class="forgot" href="">Forgot your email or password?</a>
+        <div class="illustration">
+            <i class="icon ion-ios-locked-outline" style="border-color: #F2AE30;color: #EDBB30;"></i>
+        </div>
+        <div class="mb-3">
+             <input class="form-control" type="text" name="username" placeholder="username" required="">
+        </div>
+        <div class="mb-3">
+             <input class="form-control" type="password" name="password" placeholder="Password" required="">
+        </div>
+        <div class="mb-3">
+             <button class="btn btn-primary d-block w-100" type="submit" style="margin-left: 0px;background: #EDBB30;">Log In</button>
+        </div>
+        
+        <a class="forgot" href="">Forgot your email or password?</a>
     </form>
 </section>
  

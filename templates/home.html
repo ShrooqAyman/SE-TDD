@@ -1,3 +1,15 @@
-<h1>home 
-</h1>
-{{user.username}}
+{% extends 'base.html'%}
+{% load static %}
+
+
+{% block content%}
+
+<h1>welcome {{user.username}} </h1>
+
+
+<form action="{% url 'logout' %}" method="POST"  >
+  {% csrf_token %}
+<input type ="submit" value ="Logout" class="btn btn-info">
+
+</form>
+{% endblock %}
