@@ -3,7 +3,7 @@ from django.test.client import Client
 from django.urls import reverse
 from django.contrib.auth.models import User
 
-# to make tests success just uncomment urls in auth/urls.py
+# to make tests success just uncomment urls in account/urls.py
 
 # ************** Test Cases ***********************
 class BaseTest(TestCase):
