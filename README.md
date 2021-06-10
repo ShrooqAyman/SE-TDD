@@ -1,7 +1,7 @@
-# SE-TDD
+# TDD for Madina Library 
 
 ## Installation
-To run tests follow this steps
+To run [Tests](https://github.com/ShrooqAyman/SE-TDD/blob/main/account/tests/test_auth.py)  follow this steps
 1. Download project files and open with vcode 
 2. run the follwing commamds in terminal
  ```bash
